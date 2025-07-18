@@ -6,7 +6,7 @@ from plotly.subplots import make_subplots
 
 st.set_page_config(layout="wide")
 
-st.title("Exergy Analysis for Injection Technologies")
+st.title("Exergy Analysis IOR Technologies")
 
 # --- Input mode selection ---
 input_mode = st.radio("Select input mode:", ("Upload Excel", "Manual Entry"))
