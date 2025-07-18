@@ -1,5 +1,4 @@
 # streamlit_waterflooding_exergy.py
-pip install plotly
 
 import streamlit as st
 import pandas as pd
