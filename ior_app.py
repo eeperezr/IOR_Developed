@@ -1,62 +1,58 @@
-# ior_app.py
+# ior_app_exergy.py
 
 import streamlit as st
 
-# ----- Diccionario de tecnologías IOR -----
+# ----- Basic Info for Water Flooding -----
 
-ior_techs = {
-    "Inyección de CO₂": {
-        "tipo": "Gas",
-        "descripcion": "Se inyecta CO₂ en el yacimiento para reducir la viscosidad del crudo y mejorar su movilidad.",
-        "implementacion": ["EE. UU. (Permian Basin)", "Canadá", "Emiratos Árabes"]
-    },
-    "Inyección de Vapor (Steamflooding)": {
-        "tipo": "Térmica",
-        "descripcion": "Se inyecta vapor para calentar el crudo y hacerlo más fluido, facilitando su extracción.",
-        "implementacion": ["California", "Venezuela", "Canadá"]
-    },
-    "Combustión In Situ (ISC)": {
-        "tipo": "Térmica",
-        "descripcion": "Se quema una parte del crudo dentro del yacimiento para generar calor y reducir viscosidad.",
-        "implementacion": ["India", "Rusia", "Venezuela"]
-    },
-    "Inyección de Polímeros": {
-        "tipo": "Química",
-        "descripcion": "Se agregan polímeros al agua inyectada para aumentar su viscosidad y mejorar el barrido del petróleo.",
-        "implementacion": ["China", "Canadá", "Argentina"]
-    },
-    "ASP (Alcalino-Surfactante-Polímero)": {
-        "tipo": "Química",
-        "descripcion": "Combinación de agentes químicos para reducir la tensión interfacial y mejorar la movilidad del crudo.",
-        "implementacion": ["China", "India", "EE. UU."]
-    },
-    "Microbiana (MEOR)": {
-        "tipo": "Biológica",
-        "descripcion": "Uso de microorganismos que generan gases o biosurfactantes para mejorar la recuperación.",
-        "implementacion": ["India", "Rusia", "Proyectos piloto"]
-    },
-    "Nanotecnología (emergente)": {
-        "tipo": "Avanzada",
-        "descripcion": "Aplicación de nanopartículas para alterar propiedades del crudo o del medio poroso.",
-        "implementacion": ["EE. UU.", "Emiratos Árabes", "Fase piloto"]
-    },
-}
+def water_flooding_exergy_interface():
+    st.subheader("💧 Water Flooding – Exergy Estimation")
 
-# ----- Streamlit App -----
+    st.markdown("""
+    This section allows you to estimate the **exergy input** for the Water Flooding IOR process.
+    Please input the required data below. The equations and constants will be defined progressively.
+    """)
 
-st.set_page_config(page_title="Selector de Tecnología IOR", layout="centered")
+    # --- Input Parameters (placeholders for now) ---
+    st.markdown("### 🔢 Input Variables")
 
-st.title("🔍 Selector de Tecnología IOR")
-st.markdown("Selecciona una tecnología de recuperación mejorada de petróleo para obtener más información.")
+    injection_rate = st.number_input("Injection Rate (m³/day)", min_value=0.0, step=0.1)
+    injection_pressure = st.number_input("Injection Pressure (bar)", min_value=0.0, step=0.1)
+    injection_temperature = st.number_input("Injection Temperature (°C)", min_value=0.0, step=0.1)
+    ambient_temperature = st.number_input("Ambient Temperature (°C)", min_value=0.0, value=25.0)
 
-# Menú desplegable
-tecnologia_seleccionada = st.selectbox("Tecnología IOR:", list(ior_techs.keys()))
+    # --- Placeholder for Constants ---
+    st.markdown("### ⚙️ Constants (to be defined or adjusted)")
+    st.write("⚠️ This section will include physical constants such as Cp, reference pressure, and specific exergy expressions.")
 
-# Mostrar información
-if tecnologia_seleccionada:
-    data = ior_techs[tecnologia_seleccionada]
-    st.subheader(f"📌 {tecnologia_seleccionada}")
-    st.markdown(f"**Tipo:** {data['tipo']}")
-    st.markdown(f"**Descripción:** {data['descripcion']}")
-    st.markdown(f"**Implementación mundial:**")
-    st.write("- " + "\n- ".join(data["implementacion"]))
+    # --- Output Placeholder ---
+    st.markdown("### 📈 Output – Exergy Input")
+    st.success("Exergy estimation logic will be implemented here once equations are defined.")
+
+    # --- Future Plot Section ---
+    st.markdown("### 📊 Visualization")
+    st.info("Charts will be added based on exergy trends vs injection variables.")
+
+# ----- Main App -----
+
+st.set_page_config(page_title="IOR Technology Selector + Exergy Tool", layout="centered")
+
+st.title("⚙️ IOR Technology Selector and Exergy Analysis")
+
+# Technology selection
+tech_selected = st.selectbox("Select an IOR Technology:", [
+    "Water Flooding",
+    "CO₂ Injection",
+    "Steam Injection",
+    "In-Situ Combustion",
+    "Polymer Injection",
+    "ASP",
+    "MEOR",
+    "Nanotech (Emerging)"
+])
+
+# Render the interface based on selection
+if tech_selected == "Water Flooding":
+    water_flooding_exergy_interface()
+else:
+    st.info(f"The exergy module for **{tech_selected}** will be available soon.")
+
