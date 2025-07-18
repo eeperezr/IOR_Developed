@@ -12,6 +12,7 @@ g = 9.81  # m/s²
 bbl_to_m3 = 0.158987
 psi_to_Pa = 6894.76
 
+# --- App Config ---
 st.set_page_config(page_title="Water Flooding Exergy Analysis", layout="centered")
 st.title("💧 Water Flooding – Exergy Evaluation Tool")
 
@@ -36,14 +37,23 @@ input_mode = st.radio("Select input method:", ["Upload Excel file", "Manual entr
 # --- Load or Enter Data ---
 if input_mode == "Upload Excel file":
     file = st.file_uploader("Upload your Excel file with well data", type=["xlsx"])
+    
+    st.markdown("""
+    **📌 Required columns in Excel file:**
+    - `Qinj_B`: Injection rate (bbl/day)
+    - `qoil_B`: Oil production (bbl/day)
+    - `WHP_psi`: Wellhead pressure (psi)
+    - `WOR`: Water-oil ratio (0 to 1)
+    - `date`: Date of measurement
+    """)
+
     if file is not None:
         df = pd.read_excel(file)
 
-        # Rename column if needed
+        # Rename column if legacy name is present
         if "Fecha_poly" in df.columns:
             df.rename(columns={"Fecha_poly": "date"}, inplace=True)
 
-        # Convert units
         df["Qinj_m3"] = df["Qinj_B"] * bbl_to_m3
         df["qoil_m3"] = df["qoil_B"] * bbl_to_m3
         df["ΔP_Pa"] = df["WHP_psi"] * psi_to_Pa
@@ -70,7 +80,6 @@ elif input_mode == "Manual entry":
 
 # --- Exergy Calculation ---
 if 'df' in locals() and not df.empty:
-    # Initialize outputs
     df["X_W_Prod_J"] = 0.0
     df["X_Iny_J"] = 0.0
     df["X_RFV_J"] = 0.0
@@ -82,10 +91,7 @@ if 'df' in locals() and not df.empty:
         X_W_Prod = row["Qinj_m3"] * X_trat * 3600 * 1000
         X_Iny = row["Qinj_m3"] * row["ΔP_Pa"] / eff_pump
 
-        X_RFV = 0
-        for _ in range(n_valves):
-            X_RFV += row["Qinj_m3"] * row["ΔP_Pa"] / eff_valv
-        X_RFV /= eff_pump
+        X_RFV = sum(row["Qinj_m3"] * row["ΔP_Pa"] / eff_valv for _ in range(n_valves)) / eff_pump
 
         rho_mix = row["WOR"] * rho_W + (1 - row["WOR"]) * rho_O
         V_liq = row["qoil_m3"] * (1 + row["WOR"])
@@ -111,9 +117,7 @@ if 'df' in locals() and not df.empty:
     df["Energy_Cost_kUSD"] = df["Input_Exergies_kWh"] * energy_cost / 1000
     df["Useful_Oil_Exergy_GJ"] = (df["X_Oil_Total_J"] * df["X_RF"]) / 1e9
 
-    # --- Plots ---
-    st.header("📊 Results")
-
+    # --- Plotting Function ---
     def plot_trace(x, y, title, yaxis_title, color):
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=x, y=y, mode="lines+markers", line=dict(color=color)))
@@ -121,13 +125,31 @@ if 'df' in locals() and not df.empty:
             title=title,
             xaxis_title="Date",
             yaxis_title=yaxis_title,
-            plot_bgcolor="white",
-            width=700, height=400
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            font=dict(color='white'),
+            xaxis=dict(
+                showgrid=True, zeroline=True, zerolinecolor="white", linecolor='white', tickfont=dict(color='white'),
+            ),
+            yaxis=dict(
+                showgrid=True, zeroline=True, zerolinecolor="white", linecolor='white', tickfont=dict(color='white'),
+            ),
+            margin=dict(l=30, r=30, t=40, b=30),
+            height=400,
         )
         return fig
 
-    st.plotly_chart(plot_trace(df["date"], df["CO2_Emissions_tons"], "CO₂ Emissions Over Time", "CO₂ (tons)", "crimson"))
-    st.plotly_chart(plot_trace(df["date"], df["Energy_Cost_kUSD"], "Energy Cost Over Time", "Cost (thousand USD)", "navy"))
-    st.plotly_chart(plot_trace(df["date"], df["X_RF"], "Exergetic Efficiency (X_RF)", "X_RF", "darkgreen"))
-    st.plotly_chart(plot_trace(df["date"], df["Useful_Oil_Exergy_GJ"], "Useful Oil Exergy Over Time", "Exergy (GJ)", "darkorange"))
+    # --- Display Plots in 2x2 Layout ---
+    st.header("📊 Results Overview")
 
+    col1, col2 = st.columns(2)
+    with col1:
+        st.plotly_chart(plot_trace(df["date"], df["CO2_Emissions_tons"], "CO₂ Emissions Over Time", "CO₂ (tons)", "crimson"), use_container_width=True)
+    with col2:
+        st.plotly_chart(plot_trace(df["date"], df["Energy_Cost_kUSD"], "Energy Cost Over Time", "Cost (kUSD)", "navy"), use_container_width=True)
+
+    col3, col4 = st.columns(2)
+    with col3:
+        st.plotly_chart(plot_trace(df["date"], df["X_RF"], "Exergetic Efficiency (X_RF)", "X_RF", "darkgreen"), use_container_width=True)
+    with col4:
+        st.plotly_chart(plot_trace(df["date"], df["Useful_Oil_Exergy_GJ"], "Useful Oil Exergy Over Time", "Exergy (GJ)", "darkorange"), use_container_width=True)
